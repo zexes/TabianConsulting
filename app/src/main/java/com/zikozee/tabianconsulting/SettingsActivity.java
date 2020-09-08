@@ -33,7 +33,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     private static final String TAG = "SettingsActivity";
 
-    private static final String DOMAIN_NAME = "tabian.ca";
+    private static final String DOMAIN_NAME = "gmail.com";
 
     //firebase
     private FirebaseAuth mAuth;
