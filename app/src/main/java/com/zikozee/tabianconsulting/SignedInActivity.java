@@ -52,7 +52,7 @@ public class SignedInActivity extends AppCompatActivity {
             Log.d(TAG, "checkAuthenticationState: user is null, navigating back to login screen.");
 
             Intent intent = new Intent(SignedInActivity.this, LoginActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);//THIS FLAG CLEARS OUT THE ACTIVITY STACK SO USER CANNOT PRESS BACK BUTTON
             startActivity(intent);
             finish();
         }else{
