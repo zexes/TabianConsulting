@@ -1,8 +1,5 @@
 package com.zikozee.tabianconsulting;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -14,14 +11,19 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+
 public class RegisterActivity extends AppCompatActivity {
-    private FirebaseAuth mAuth;
+
     private static final String TAG = "RegisterActivity";
 
     private static final String DOMAIN_NAME = "gmail.com";
@@ -40,7 +42,6 @@ public class RegisterActivity extends AppCompatActivity {
         mConfirmPassword = (EditText) findViewById(R.id.input_confirm_password);
         mRegister = (Button) findViewById(R.id.btn_register);
         mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
-        mAuth = FirebaseAuth.getInstance();
 
         mRegister.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -64,8 +65,6 @@ public class RegisterActivity extends AppCompatActivity {
                             Toast.makeText(RegisterActivity.this, "Passwords do not Match", Toast.LENGTH_SHORT).show();
                         }
                     }else{
-                        Log.d(TAG, " "+isValidDomain(mEmail.getText().toString()));
-                        Log.d(TAG, " "+mEmail.getText().toString());
                         Toast.makeText(RegisterActivity.this, "Please Register with Company Email", Toast.LENGTH_SHORT).show();
                     }
 
@@ -80,24 +79,6 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
 
-    private void sendVerificationEmail(){
-        FirebaseUser user = mAuth.getCurrentUser();
-        if(user!=null){
-            user.sendEmailVerification().addOnCompleteListener(new OnCompleteListener<Void>() {
-                @Override
-                public void onComplete(@NonNull Task<Void> task) {
-                    if(task.isSuccessful()){
-                        Toast.makeText(RegisterActivity.this, "Sent Verification Email", Toast.LENGTH_SHORT).show();
-                    }else{
-                        Toast.makeText(RegisterActivity.this, "Couldn't Verification Email", Toast.LENGTH_SHORT).show();
-
-                    }
-                }
-            });
-        }
-
-    }
-
     /**
      * Register a new email and password to Firebase Authentication
      * @param email
@@ -107,7 +88,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         showDialog();
 
-        mAuth.createUserWithEmailAndPassword(email, password)
+        FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
@@ -116,12 +97,15 @@ public class RegisterActivity extends AppCompatActivity {
                         if (task.isSuccessful()){
                             Log.d(TAG, "onComplete: AuthState: " + FirebaseAuth.getInstance().getCurrentUser().getUid());
 
+                            //send email verificaiton
                             sendVerificationEmail();
+
                             FirebaseAuth.getInstance().signOut();
+
+                            //redirect the user to the login screen
                             redirectLoginScreen();
                         }
                         if (!task.isSuccessful()) {
-                            Log.d(TAG, task.getException().getMessage());
                             Toast.makeText(RegisterActivity.this, "Unable to Register",
                                     Toast.LENGTH_SHORT).show();
                         }
@@ -130,6 +114,29 @@ public class RegisterActivity extends AppCompatActivity {
                         // ...
                     }
                 });
+    }
+
+    /**
+     * sends an email verification link to the user
+     */
+    private void sendVerificationEmail() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+        if (user != null) {
+            user.sendEmailVerification()
+                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                Toast.makeText(RegisterActivity.this, "Sent Verification Email", Toast.LENGTH_SHORT).show();
+                            }
+                            else{
+                                Toast.makeText(RegisterActivity.this, "Couldn't Verification Send Email", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
+        }
+
     }
 
     /**
@@ -188,4 +195,22 @@ public class RegisterActivity extends AppCompatActivity {
     private void hideSoftKeyboard(){
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
     }
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -26,15 +26,13 @@ import com.google.firebase.auth.FirebaseUser;
 
 public class ResendVerificationDialog extends DialogFragment {
 
-    private static final String TAG = "ResendVerificationDialo";
+    private static final String TAG = "ResendVerificationDialog";
 
     //widgets
     private EditText mConfirmPassword, mConfirmEmail;
 
     //vars
     private Context mContext;
-
-    private FirebaseAuth mAuth;
 
     @Nullable
     @Override
@@ -43,8 +41,6 @@ public class ResendVerificationDialog extends DialogFragment {
         mConfirmPassword = (EditText) view.findViewById(R.id.confirm_password);
         mConfirmEmail = (EditText) view.findViewById(R.id.confirm_email);
         mContext = getActivity();
-
-        mAuth = FirebaseAuth.getInstance();
 
 
         TextView confirmDialog = (TextView) view.findViewById(R.id.dialogConfirm);
@@ -56,7 +52,9 @@ public class ResendVerificationDialog extends DialogFragment {
                 if(!isEmpty(mConfirmEmail.getText().toString())
                         && !isEmpty(mConfirmPassword.getText().toString())){
 
-                    authenticateAndResendEmail(mConfirmEmail.getText().toString(), mConfirmPassword.getText().toString());
+                    //temporarily authenticate and resend verification email
+                    authenticateAndResendEmail(mConfirmEmail.getText().toString(),
+                            mConfirmPassword.getText().toString());
                 }else{
                     Toast.makeText(mContext, "all fields must be filled out", Toast.LENGTH_SHORT).show();
                 }
@@ -78,29 +76,33 @@ public class ResendVerificationDialog extends DialogFragment {
     }
 
 
-    private void authenticateAndResendEmail(String email, String password){
-        AuthCredential credential = EmailAuthProvider.getCredential(email, password);
-        mAuth.signInWithCredential(credential).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-            @Override
-            public void onComplete(@NonNull Task<AuthResult> task) {
-                if(task.isSuccessful()){
-                    Log.d(TAG, "onComplete: reAuthenticate.");
-                    sendVerificationEmail();
-                    mAuth.signOut();
-                    getDialog().dismiss();
-                }
-            }
-        }).addOnFailureListener(new OnFailureListener() {
+    /**
+     * reauthenticate so we can send a verification email again
+     * @param email
+     * @param password
+     */
+    private void authenticateAndResendEmail(String email, String password) {
+        AuthCredential credential = EmailAuthProvider
+                .getCredential(email, password);
+        FirebaseAuth.getInstance().signInWithCredential(credential)
+                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            Log.d(TAG, "onComplete: reauthenticate success.");
+                            sendVerificationEmail();
+                            FirebaseAuth.getInstance().signOut();
+                            getDialog().dismiss();
+                        }
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
-                Toast.makeText(mContext, "Invalid Credentials \nReset yur password and try again",
-                        Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext, "Invalid Credentials. \nReset your password and try again", Toast.LENGTH_SHORT).show();
                 getDialog().dismiss();
             }
         });
     }
-
-
 
     /**
      * sends an email verification link to the user
