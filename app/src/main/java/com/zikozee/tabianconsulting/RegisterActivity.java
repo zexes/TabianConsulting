@@ -16,10 +16,13 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.FirebaseDatabase;
+import com.zikozee.tabianconsulting.models.User;
 
 
 public class RegisterActivity extends AppCompatActivity {
@@ -27,6 +30,8 @@ public class RegisterActivity extends AppCompatActivity {
     private static final String TAG = "RegisterActivity";
 
     private static final String DOMAIN_NAME = "gmail.com";
+
+    private FirebaseAuth mAuth;
 
     //widgets
     private EditText mEmail, mPassword, mConfirmPassword;
@@ -87,6 +92,7 @@ public class RegisterActivity extends AppCompatActivity {
     public void registerNewEmail(final String email, String password){
 
         showDialog();
+        mAuth = FirebaseAuth.getInstance();
 
         FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
@@ -95,15 +101,39 @@ public class RegisterActivity extends AppCompatActivity {
                         Log.d(TAG, "createUserWithEmail:onComplete:" + task.isSuccessful());
 
                         if (task.isSuccessful()){
-                            Log.d(TAG, "onComplete: AuthState: " + FirebaseAuth.getInstance().getCurrentUser().getUid());
+                            Log.d(TAG, "onComplete: AuthState: " + mAuth.getCurrentUser().getUid());
 
-                            //send email verificaiton
+                            //send email verification
                             sendVerificationEmail();
 
-                            FirebaseAuth.getInstance().signOut();
+                            User user  = new User.Builder()
+                                    .name(email.substring(0, email.indexOf("@")))
+                                    .phone("1")
+                                    .profile_image("")
+                                    .security_level("1")
+                                    .user_id(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                                    .build();
 
-                            //redirect the user to the login screen
-                            redirectLoginScreen();
+                            FirebaseDatabase.getInstance().getReference()
+                                    .child(getString(R.string.dbnode_users))
+                                    .child(FirebaseAuth.getInstance().getCurrentUser().getUid())//write to logged in user node
+                                    .setValue(user).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    FirebaseAuth.getInstance().signOut();
+                                    redirectLoginScreen();
+
+                                }
+                            }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Log.d(TAG, "onFailure: " + e.getLocalizedMessage());
+                                    FirebaseAuth.getInstance().signOut();
+                                    redirectLoginScreen();
+                                    Toast.makeText(RegisterActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+
                         }
                         if (!task.isSuccessful()) {
                             Toast.makeText(RegisterActivity.this, "Unable to Register",
