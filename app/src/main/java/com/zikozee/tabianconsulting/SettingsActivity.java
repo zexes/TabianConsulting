@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -23,22 +24,28 @@ import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.SignInMethodQueryResult;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 
 public class SettingsActivity extends AppCompatActivity {
 
     private static final String TAG = "SettingsActivity";
 
-    private static final String DOMAIN_NAME = "gmail.com";
+    private static final String DOMAIN_NAME = "tabian.ca";
 
     //firebase
     private FirebaseAuth.AuthStateListener mAuthListener;
 
     //widgets
     private EditText mEmail, mCurrentPassword, mName, mPhone;
+    private ImageView mProfileImage;
     private Button mSave;
     private ProgressBar mProgressBar;
     private TextView mResetPasswordLink;
+
+    //vars
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -50,19 +57,27 @@ public class SettingsActivity extends AppCompatActivity {
         mSave= (Button) findViewById(R.id.btn_save);
         mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
         mResetPasswordLink = (TextView) findViewById(R.id.change_password);
-		mName = (EditText) findViewById(R.id.input_name);
+        mName = (EditText) findViewById(R.id.input_name);
         mPhone = (EditText) findViewById(R.id.input_phone);
+        mProfileImage = (ImageView) findViewById(R.id.profile_image);
 
         setupFirebaseAuth();
-
         setCurrentEmail();
+        init();
+        hideSoftKeyboard();
+
+
+    }
+
+    private void init(){
+
 
         mSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Log.d(TAG, "onClick: attempting to save settings.");
 
-                 //see if they changed the email
+                //see if they changed the email
                 if(!mEmail.getText().toString().equals(FirebaseAuth.getInstance().getCurrentUser().getEmail())){
                     //make sure email and current password fields are filled
                     if(!isEmpty(mEmail.getText().toString())
@@ -79,6 +94,34 @@ public class SettingsActivity extends AppCompatActivity {
                         Toast.makeText(SettingsActivity.this, "Email and Current Password Fields Must be Filled to Save", Toast.LENGTH_SHORT).show();
                     }
                 }
+
+
+                /*
+                ------ METHOD 1 for changing database data (proper way in this scenario) -----
+                 */
+                DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
+                /*
+                ------ Change Name -----
+                 */
+                if(!mName.getText().toString().equals("")){
+                    reference.child(getString(R.string.dbnode_users))
+                            .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                            .child(getString(R.string.field_name))
+                            .setValue(mName.getText().toString());
+                }
+
+
+                /*
+                ------ Change Phone Number -----
+                 */
+                if(!mPhone.getText().toString().equals("")){
+                    reference.child(getString(R.string.dbnode_users))
+                            .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                            .child(getString(R.string.field_phone))
+                            .setValue(mPhone.getText().toString());
+                }
+
+                Toast.makeText(SettingsActivity.this, "saved", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -94,10 +137,10 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
-
-
-        hideSoftKeyboard();
     }
+
+
+
 
     private void sendResetPasswordLink(){
         FirebaseAuth.getInstance().sendPasswordResetEmail(FirebaseAuth.getInstance().getCurrentUser().getEmail())
@@ -119,7 +162,7 @@ public class SettingsActivity extends AppCompatActivity {
                 });
     }
 
-  private void editUserEmail(){
+    private void editUserEmail(){
         // Get auth credentials from the user for re-authentication. The example below shows
         // email and password credentials but there are multiple possible providers,
         // such as GoogleAuthProvider or FacebookAuthProvider.
@@ -141,7 +184,7 @@ public class SettingsActivity extends AppCompatActivity {
 
                             //make sure the domain is valid
                             if(isValidDomain(mEmail.getText().toString())){
-                                
+
                                 ///////////////////now check to see if the email is not already present in the database
                                 FirebaseAuth.getInstance().fetchSignInMethodsForEmail(mEmail.getText().toString()).addOnCompleteListener(new OnCompleteListener<SignInMethodQueryResult>() {
                                     @Override
@@ -208,13 +251,13 @@ public class SettingsActivity extends AppCompatActivity {
 
                     }
                 })
-        .addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                hideDialog();
-                Toast.makeText(SettingsActivity.this, "“unable to update email”", Toast.LENGTH_SHORT).show();
-            }
-        });
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        hideDialog();
+                        Toast.makeText(SettingsActivity.this, "“unable to update email”", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     /**
@@ -342,6 +385,8 @@ public class SettingsActivity extends AppCompatActivity {
                 // ...
             }
         };
+
+
     }
 
     @Override
@@ -357,6 +402,7 @@ public class SettingsActivity extends AppCompatActivity {
             FirebaseAuth.getInstance().removeAuthStateListener(mAuthListener);
         }
     }
+
 }
 
 
