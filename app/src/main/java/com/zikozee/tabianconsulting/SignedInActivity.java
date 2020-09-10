@@ -3,10 +3,11 @@ package com.zikozee.tabianconsulting;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,6 +17,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.zikozee.tabianconsulting.utility.UniversalImageLoader;
 
 
 public class SignedInActivity extends AppCompatActivity {
@@ -36,53 +39,18 @@ public class SignedInActivity extends AppCompatActivity {
         Log.d(TAG, "onCreate: started.");
 
         setupFirebaseAuth();
-        setUserDetails();
-        //getUserDetails();
+
+        initImageLoader();
     }
 
-    private void setUserDetails(){
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-
-        if(user!= null){
-            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                    .setDisplayName("Zikozee")
-                    .setPhotoUri(Uri.parse("https://cdn.pixabay.com/photo/2020/08/17/13/37/elephant-5495430__340.jpg"))
-                    .build();
-
-            user.updateProfile(profileUpdates)
-                    .addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            if(task.isSuccessful()){
-                                Log.d(TAG, "onComplete: User profile updated");
-
-                                getUserDetails();
-                            }
-                        }
-                    });
-
-        }
+    /**
+     * init universal image loader
+     */
+    private void initImageLoader(){
+        UniversalImageLoader imageLoader = new UniversalImageLoader(SignedInActivity.this);
+        ImageLoader.getInstance().init(imageLoader.getConfig());
     }
-
-    private void getUserDetails(){
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if(user != null){
-            String uid = user.getUid();
-            String name = user.getDisplayName();
-            String email = user.getEmail();
-            Uri photoUrl = user.getPhotoUrl();
-
-            String properties = "uid: " + uid + "\n" +
-                    "name: " + name + "\n" +
-                    "email: " + email + "\n" +
-                    "photoUrl: " + photoUrl;
-
-            Log.d(TAG, "getUserDetails: properties \n" + properties);
-        }
-    }
-
-
-
+    
     @Override
     protected void onResume() {
         super.onResume();
@@ -98,7 +66,7 @@ public class SignedInActivity extends AppCompatActivity {
             Log.d(TAG, "checkAuthenticationState: user is null, navigating back to login screen.");
 
             Intent intent = new Intent(SignedInActivity.this, LoginActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);//THIS FLAG CLEARS OUT THE ACTIVITY STACK SO USER CANNOT PRESS BACK BUTTON
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             finish();
         }else{
