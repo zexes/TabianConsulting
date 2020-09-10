@@ -2,6 +2,7 @@ package com.zikozee.tabianconsulting;
 
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -66,6 +67,7 @@ public class SettingsActivity extends AppCompatActivity implements
             mSelectedImageBitmap = null;
             mSelectedImageUri = imagePath;
             Log.d(TAG, "getImagePath: got the image uri: " + mSelectedImageUri);
+
             ImageLoader.getInstance().displayImage(imagePath.toString(), mProfileImage);
         }
 
@@ -77,12 +79,13 @@ public class SettingsActivity extends AppCompatActivity implements
             mSelectedImageUri = null;
             mSelectedImageBitmap = bitmap;
             Log.d(TAG, "getImageBitmap: got the image bitmap: " + mSelectedImageBitmap);
+
             mProfileImage.setImageBitmap(bitmap);
         }
     }
 
 
-    private static final String DOMAIN_NAME = "gmail.com";
+    private static final String DOMAIN_NAME = "tabian.ca";
     private static final int REQUEST_CODE = 1234;
     private static final double MB_THRESHHOLD = 5.0;
     private static final double MB = 1000000.0;
@@ -105,9 +108,6 @@ public class SettingsActivity extends AppCompatActivity implements
     private byte[] mBytes;
     private double progress;
 
-    //Firebase
-    private FirebaseAuth mAuth;
-    private FirebaseDatabase mData;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -122,9 +122,6 @@ public class SettingsActivity extends AppCompatActivity implements
         mName = (EditText) findViewById(R.id.input_name);
         mPhone = (EditText) findViewById(R.id.input_phone);
         mProfileImage = (ImageView) findViewById(R.id.profile_image);
-
-        mAuth = FirebaseAuth.getInstance();
-        mData = FirebaseDatabase.getInstance();
 
         verifyStoragePermissions();
         setupFirebaseAuth();
@@ -145,7 +142,7 @@ public class SettingsActivity extends AppCompatActivity implements
                 Log.d(TAG, "onClick: attempting to save settings.");
 
                 //see if they changed the email
-                if(!mEmail.getText().toString().equals(mAuth.getCurrentUser().getEmail())){
+                if(!mEmail.getText().toString().equals(FirebaseAuth.getInstance().getCurrentUser().getEmail())){
                     //make sure email and current password fields are filled
                     if(!isEmpty(mEmail.getText().toString())
                             && !isEmpty(mCurrentPassword.getText().toString())){
@@ -166,13 +163,13 @@ public class SettingsActivity extends AppCompatActivity implements
                 /*
                 ------ METHOD 1 for changing database data (proper way in this scenario) -----
                  */
-                DatabaseReference reference = mData.getReference();
+                DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
                 /*
                 ------ Change Name -----
                  */
                 if(!mName.getText().toString().equals("")){
                     reference.child(getString(R.string.dbnode_users))
-                            .child(mAuth.getCurrentUser().getUid())
+                            .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
                             .child(getString(R.string.field_name))
                             .setValue(mName.getText().toString());
                 }
@@ -183,12 +180,10 @@ public class SettingsActivity extends AppCompatActivity implements
                  */
                 if(!mPhone.getText().toString().equals("")){
                     reference.child(getString(R.string.dbnode_users))
-                            .child(mAuth.getCurrentUser().getUid())
+                            .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
                             .child(getString(R.string.field_phone))
                             .setValue(mPhone.getText().toString());
                 }
-
-                Toast.makeText(SettingsActivity.this, "saved", Toast.LENGTH_SHORT).show();
 
                  /*
                 ------ Upload the New Photo -----
@@ -198,6 +193,8 @@ public class SettingsActivity extends AppCompatActivity implements
                 }else if(mSelectedImageBitmap  != null){
                     uploadNewPhoto(mSelectedImageBitmap);
                 }
+
+                Toast.makeText(SettingsActivity.this, "saved", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -228,6 +225,7 @@ public class SettingsActivity extends AppCompatActivity implements
         });
 
     }
+
 
     /**
      * Uploads a new profile photo to Firebase Storage using a @param ***imageUri***
@@ -331,7 +329,7 @@ public class SettingsActivity extends AppCompatActivity implements
 
     private void executeUploadTask(){
         showDialog();
-        //specify where the photo will be stored
+//specify where the photo will be stored
         final StorageReference storageReference = FirebaseStorage.getInstance().getReference()
                 .child(FilePaths.FIREBASE_IMAGE_STORAGE + "/" + FirebaseAuth.getInstance().getCurrentUser().getUid()
                         + "/profile_image"); //just replace the old image with the new one
@@ -360,14 +358,14 @@ public class SettingsActivity extends AppCompatActivity implements
                 @Override
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                     //Now insert the download url into the firebase database
-                    if (taskSnapshot.getMetadata() != null){
+                    if(taskSnapshot.getMetadata() != null){
                         Task<Uri> firebaseURL = taskSnapshot.getMetadata().getReference().getDownloadUrl();
                         firebaseURL.addOnSuccessListener(new OnSuccessListener<Uri>() {
                             @Override
                             public void onSuccess(Uri uri) {
                                 Toast.makeText(SettingsActivity.this, "Upload Success", Toast.LENGTH_SHORT).show();
                                 Log.d(TAG, "onSuccess: firebase download url : " + uri.toString());
-                                mData.getReference()
+                                FirebaseDatabase.getInstance().getReference()
                                         .child(getString(R.string.dbnode_users))
                                         .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
                                         .child(getString(R.string.field_profile_image))
@@ -441,29 +439,28 @@ public class SettingsActivity extends AppCompatActivity implements
         /*
             ---------- QUERY Method 2 ----------
          */
-//        Query query2 = reference.child(getString(R.string.dbnode_users))
-//                .orderByChild(getString(R.string.field_user_id))
-//                .equalTo(FirebaseAuth.getInstance().getCurrentUser().getUid());
-//        query2.addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(DataSnapshot dataSnapshot) {
-//
-//                //this loop will return a single result
-//                for(DataSnapshot singleSnapshot: dataSnapshot.getChildren()){
-//                    Log.d(TAG, "onDataChange: (QUERY METHOD 2) found user: "
-//                            + singleSnapshot.getValue(User.class).toString());
-//                }
-//            }
-//
-//            @Override
-//            public void onCancelled(DatabaseError databaseError) {
-//
-//            }
-//        });
+        Query query2 = reference.child(getString(R.string.dbnode_users))
+                .orderByChild(getString(R.string.field_user_id))
+                .equalTo(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        query2.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                //this loop will return a single result
+                for(DataSnapshot singleSnapshot: dataSnapshot.getChildren()){
+                    Log.d(TAG, "onDataChange: (QUERY METHOD 2) found user: "
+                            + singleSnapshot.getValue(User.class).toString());
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
 
         mEmail.setText(FirebaseAuth.getInstance().getCurrentUser().getEmail());
     }
-
 
 
     /**
@@ -471,8 +468,8 @@ public class SettingsActivity extends AppCompatActivity implements
      */
     public void verifyStoragePermissions(){
         Log.d(TAG, "verifyPermissions: asking user for permissions.");
-        String[] permissions = {Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+        String[] permissions = {android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
                 Manifest.permission.CAMERA};
         if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
                 permissions[0] ) == PackageManager.PERMISSION_GRANTED
@@ -653,7 +650,7 @@ public class SettingsActivity extends AppCompatActivity implements
     private void setCurrentEmail(){
         Log.d(TAG, "setCurrentEmail: setting current email to EditText field");
 
-        FirebaseUser user = mAuth.getCurrentUser();
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
         if(user != null){
             Log.d(TAG, "setCurrentEmail: user is NOT null.");
@@ -769,7 +766,6 @@ public class SettingsActivity extends AppCompatActivity implements
             FirebaseAuth.getInstance().removeAuthStateListener(mAuthListener);
         }
     }
-
 
 }
 
