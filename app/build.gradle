@@ -41,6 +41,9 @@ dependencies {
     //Firebase Storage
     implementation 'com.google.firebase:firebase-storage:19.2.0'
 
+    //Firebase Cloud Messaging
+    implementation 'com.google.firebase:firebase-messaging:20.2.4'
+
     //Universal Image Loader
     implementation 'com.nostra13.universalimageloader:universal-image-loader:1.9.5'
 
