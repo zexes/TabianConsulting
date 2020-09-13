@@ -27,15 +27,17 @@ import com.zikozee.tabianconsulting.models.User;
 
 
 public class RegisterActivity extends AppCompatActivity {
-
     private static final String TAG = "RegisterActivity";
 
-    private static final String DOMAIN_NAME = "tabian.ca";
+    private static final String DOMAIN_NAME = "gmail.com";
 
     //widgets
     private EditText mEmail, mPassword, mConfirmPassword;
     private Button mRegister;
     private ProgressBar mProgressBar;
+
+    //vars
+    public static boolean isActivityRunning;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -110,7 +112,8 @@ public class RegisterActivity extends AppCompatActivity {
                             .phone("1")
                             .profile_image("")
                             .security_level("1")
-                            .user_id(FirebaseAuth.getInstance().getCurrentUser().getUid()).build();
+                            .user_id(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                                    .build();
                             FirebaseDatabase.getInstance().getReference()
                                     .child(getString(R.string.dbnode_users))
                                     .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
@@ -226,6 +229,17 @@ public class RegisterActivity extends AppCompatActivity {
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        isActivityRunning = true;
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        isActivityRunning = false;
+    }
 
 }
 

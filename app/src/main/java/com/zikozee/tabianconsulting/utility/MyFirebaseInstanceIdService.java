@@ -23,7 +23,7 @@ public class MyFirebaseInstanceIdService extends FirebaseInstanceIdService {
         sendRegistrationToServer(refreshedToken);
     }
 
-    //best called in the first activity too for initialization
+    //best called in the first activity too for initialization : SignedInActivity
     private void sendRegistrationToServer(String token) {
         Log.d(TAG, "sendRegistrationToServer: sending token to the server:" + token);
 

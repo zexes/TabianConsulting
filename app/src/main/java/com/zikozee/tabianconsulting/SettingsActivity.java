@@ -107,6 +107,7 @@ public class SettingsActivity extends AppCompatActivity implements
     private Bitmap mSelectedImageBitmap;
     private byte[] mBytes;
     private double progress;
+    public static boolean isActivityRunning;
 
 
     @Override
@@ -358,22 +359,17 @@ public class SettingsActivity extends AppCompatActivity implements
                 @Override
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                     //Now insert the download url into the firebase database
-                    if(taskSnapshot.getMetadata() != null){
+                    if(taskSnapshot.getMetadata().getReference() != null){
                         Task<Uri> firebaseURL = taskSnapshot.getMetadata().getReference().getDownloadUrl();
-                        firebaseURL.addOnSuccessListener(new OnSuccessListener<Uri>() {
-                            @Override
-                            public void onSuccess(Uri uri) {
-                                Toast.makeText(SettingsActivity.this, "Upload Success", Toast.LENGTH_SHORT).show();
-                                Log.d(TAG, "onSuccess: firebase download url : " + uri.toString());
-                                FirebaseDatabase.getInstance().getReference()
-                                        .child(getString(R.string.dbnode_users))
-                                        .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                                        .child(getString(R.string.field_profile_image))
-                                        .setValue(uri.toString());
+                        Toast.makeText(SettingsActivity.this, "Upload Success", Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, "onSuccess: firebase download url : " + firebaseURL.toString());
+                        FirebaseDatabase.getInstance().getReference()
+                                .child(getString(R.string.dbnode_users))
+                                .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                                .child(getString(R.string.field_profile_image))
+                                .setValue(firebaseURL.toString());
 
-                                hideDialog();
-                            }
-                        });
+                        hideDialog();
                     }
                 }
             }).addOnFailureListener(new OnFailureListener() {
@@ -757,6 +753,7 @@ public class SettingsActivity extends AppCompatActivity implements
     public void onStart() {
         super.onStart();
         FirebaseAuth.getInstance().addAuthStateListener(mAuthListener);
+        isActivityRunning = true;
     }
 
     @Override
@@ -765,6 +762,7 @@ public class SettingsActivity extends AppCompatActivity implements
         if (mAuthListener != null) {
             FirebaseAuth.getInstance().removeAuthStateListener(mAuthListener);
         }
+        isActivityRunning = false;
     }
 
 }
