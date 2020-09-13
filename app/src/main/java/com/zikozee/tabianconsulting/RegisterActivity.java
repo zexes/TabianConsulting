@@ -108,11 +108,12 @@ public class RegisterActivity extends AppCompatActivity {
 
                             //insert some default data
                             User user = new User.Builder()
-                            .name(email.substring(0, email.indexOf("@")))
-                            .phone("1")
-                            .profile_image("")
-                            .security_level("1")
-                            .user_id(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                                    .name(email.substring(0, email.indexOf("@")))
+                                    .phone("1")
+                                    .profile_image("")
+                                    .department("")
+                                    .security_level("1")
+                                    .user_id(FirebaseAuth.getInstance().getCurrentUser().getUid())
                                     .build();
                             FirebaseDatabase.getInstance().getReference()
                                     .child(getString(R.string.dbnode_users))
@@ -141,6 +142,7 @@ public class RegisterActivity extends AppCompatActivity {
                         if (!task.isSuccessful()) {
                             Toast.makeText(RegisterActivity.this, "Unable to Register",
                                     Toast.LENGTH_SHORT).show();
+                            Log.d(TAG, task.getException().getMessage());
                         }
                         hideDialog();
 

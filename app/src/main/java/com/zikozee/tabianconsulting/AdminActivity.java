@@ -1,6 +1,7 @@
 package com.zikozee.tabianconsulting;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -256,7 +257,7 @@ public class AdminActivity extends AppCompatActivity {
             }
         }
 
-        final ListAdapter adapter = new ArrayAdapter<String>(AdminActivity.this,
+        final ListAdapter adapter = new ArrayAdapter<>(AdminActivity.this,
                 android.R.layout.simple_list_item_1, mDepartmentsList);
         builder.setSingleChoiceItems(adapter, index, new DialogInterface.OnClickListener() {
             @Override

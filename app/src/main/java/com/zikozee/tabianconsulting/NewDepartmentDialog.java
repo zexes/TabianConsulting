@@ -1,5 +1,6 @@
 package com.zikozee.tabianconsulting;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -8,9 +9,13 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -38,7 +43,12 @@ public class NewDepartmentDialog extends DialogFragment {
                     reference
                             .child(getString(R.string.dbnode_departments))
                             .child(mNewDepartment.getText().toString())
-                            .setValue(mNewDepartment.getText().toString());
+                            .setValue(mNewDepartment.getText().toString()).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Log.d(TAG, e.getLocalizedMessage());
+                        }
+                    });
                     getDialog().dismiss();
 
                     ((AdminActivity)getActivity()).getDepartments();
@@ -57,6 +67,27 @@ public class NewDepartmentDialog extends DialogFragment {
     private boolean isEmpty(String string){
         return string.equals("");
     }
+
+//    @Override
+//    public void onResume() {
+//        super.onResume();
+//        checkAuthenticationState();
+//    }
+//
+//    private void checkAuthenticationState(){
+//        Log.d(TAG, "checkAuthenticationState: checking authentication state.");
+//
+//        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+//
+//        if(user == null){
+//            Log.d(TAG, "checkAuthenticationState: user is null, navigating back to login screen.");
+//
+//            NewDepartmentDialog departmentDialog = new NewDepartmentDialog();
+//            departmentDialog.dismiss();
+//        }else{
+//            Log.d(TAG, "checkAuthenticationState: user is authenticated.");
+//        }
+//    }
 }
 
 
