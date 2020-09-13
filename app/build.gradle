@@ -48,4 +48,11 @@ dependencies {
     //Universal Image Loader
     implementation 'com.nostra13.universalimageloader:universal-image-loader:1.9.5'
 
+    //Retrofit
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+
+    //Retrofit GSON converter --> Java to JSON
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+
+
 }
