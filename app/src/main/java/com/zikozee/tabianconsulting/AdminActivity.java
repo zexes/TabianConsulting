@@ -26,13 +26,26 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.zikozee.tabianconsulting.models.User;
+import com.zikozee.tabianconsulting.models.fcm.Data;
+import com.zikozee.tabianconsulting.models.fcm.FirebaseCloudMessage;
 import com.zikozee.tabianconsulting.utility.EmployeesAdapter;
+import com.zikozee.tabianconsulting.utility.FCM;
 import com.zikozee.tabianconsulting.utility.VerticalSpacingDecorator;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.Retrofit.Builder;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 
 /**
@@ -42,7 +55,7 @@ import java.util.Set;
 public class AdminActivity extends AppCompatActivity {
 
     private static final String TAG = "AdminActivity";
-    private static final String BASE_URL = "https://fcm.googleapis.com/fcm/";
+    private static final String BASE_URL = "https://fcm.googleapis.com/fcm/";  //BASE URL
 
     //widgets
     private TextView mDepartments;
@@ -157,6 +170,7 @@ public class AdminActivity extends AppCompatActivity {
                 if(!isEmpty(message) && !isEmpty(title)){
 
                     //send message
+                    sendMessageToDepartments(title, message);
 
 
                     mMessage.setText("");
@@ -173,6 +187,55 @@ public class AdminActivity extends AppCompatActivity {
     }
 
 
+    private void sendMessageToDepartments(String title, String message){
+        Log.d(TAG, "sendMessageToDepartments: sending message to selected departments");
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        FCM fcmAAPI = retrofit.create(FCM.class);
+
+        //attach the headers
+        Map<String, String> headers = new HashMap<>();
+        headers.put("content-type", "application/json");
+        headers.put("Authorization", "key=" + mServerKey);
+
+        //send the message to all tokens
+        for(String token: mTokens){
+
+            Log.d(TAG, "sendMessageToDepartments: sending to token: " + token);
+            Data data = new Data.Builder()
+                    .message(message)
+                    .title(title)
+                    .data_type(getString(R.string.data_type_admin_broadcast))
+                    .build();
+
+            FirebaseCloudMessage firebaseCloudMessage = new FirebaseCloudMessage.Builder()
+                    .data(data)
+                    .to(token)
+                    .build();
+
+            Call<ResponseBody> call = fcmAAPI.send(headers, firebaseCloudMessage);
+
+            call.enqueue(new Callback<ResponseBody>() {
+                @Override
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                    Log.d(TAG, "onResponse: server Response: " + response.toString());
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                    Log.d(TAG, "onFailure: Unable to send the message: " + t.toString());
+
+                    Toast.makeText(AdminActivity.this, "error", Toast.LENGTH_LONG).show();
+
+                }
+            });
+        }
+
+    }
 
     /**
      * Retrieves the server key for the Firebase server.
@@ -195,6 +258,7 @@ public class AdminActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
+                Log.d(TAG, "error: " +  databaseError.toException().getMessage());
 
             }
         });
