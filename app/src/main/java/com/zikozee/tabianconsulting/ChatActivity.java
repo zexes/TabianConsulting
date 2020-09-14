@@ -41,6 +41,7 @@ public class ChatActivity extends AppCompatActivity {
     //vars
     private ArrayList<Chatroom> mChatrooms;
     private ChatRoomListAdapter mAdapter;
+    public static boolean isActivityRunning;
 
 
     @Override
@@ -145,6 +146,18 @@ public class ChatActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         checkAuthenticationState();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        isActivityRunning = true;
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        isActivityRunning = false;
     }
 
     private void checkAuthenticationState(){

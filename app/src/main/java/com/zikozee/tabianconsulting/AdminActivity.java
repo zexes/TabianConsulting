@@ -55,7 +55,6 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class AdminActivity extends AppCompatActivity {
 
     private static final String TAG = "AdminActivity";
-    private static final String BASE_URL = "https://fcm.googleapis.com/fcm/";  //BASE URL
 
     //widgets
     private TextView mDepartments;
@@ -191,11 +190,11 @@ public class AdminActivity extends AppCompatActivity {
         Log.d(TAG, "sendMessageToDepartments: sending message to selected departments");
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(BASE_URL)
+                .baseUrl(FCM.BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
-        FCM fcmAAPI = retrofit.create(FCM.class);
+        FCM fcmAPI = retrofit.create(FCM.class);
 
         //attach the headers
         Map<String, String> headers = new HashMap<>();
@@ -217,7 +216,7 @@ public class AdminActivity extends AppCompatActivity {
                     .to(token)
                     .build();
 
-            Call<ResponseBody> call = fcmAAPI.send(headers, firebaseCloudMessage);
+            Call<ResponseBody> call = fcmAPI.send(headers, firebaseCloudMessage);
 
             call.enqueue(new Callback<ResponseBody>() {
                 @Override

@@ -38,6 +38,7 @@ public class LoginActivity extends AppCompatActivity {
     // widgets
     private EditText mEmail, mPassword;
     private ProgressBar mProgressBar;
+    public static boolean isActivityRunning;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -206,6 +207,7 @@ public class LoginActivity extends AppCompatActivity {
     public void onStart() {
         super.onStart();
         FirebaseAuth.getInstance().addAuthStateListener(mAuthListener);
+        isActivityRunning = true;
     }
 
     @Override
@@ -213,6 +215,7 @@ public class LoginActivity extends AppCompatActivity {
         super.onStop();
         if (mAuthListener != null) {
             FirebaseAuth.getInstance().removeAuthStateListener(mAuthListener);
+            isActivityRunning = false;
         }
     }
 }

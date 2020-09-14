@@ -12,6 +12,7 @@ import retrofit2.http.HeaderMap;
 import retrofit2.http.POST;
 
 public interface FCM {
+    String BASE_URL = "https://fcm.googleapis.com/fcm/";  //BASE URL
 
     @POST("send")
     Call<ResponseBody> send(

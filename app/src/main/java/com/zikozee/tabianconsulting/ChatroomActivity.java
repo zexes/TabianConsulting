@@ -60,6 +60,7 @@ public class ChatroomActivity extends AppCompatActivity {
     private Chatroom mChatroom;
     private List<ChatMessage> mMessagesList;
     private ChatMessageListAdapter mAdapter;
+    public static boolean isActivityRunning;
 
 
     @Override
@@ -332,6 +333,7 @@ public class ChatroomActivity extends AppCompatActivity {
     public void onStart() {
         super.onStart();
         FirebaseAuth.getInstance().addAuthStateListener(mAuthListener);
+        isActivityRunning = true;
     }
 
     @Override
@@ -339,6 +341,7 @@ public class ChatroomActivity extends AppCompatActivity {
         super.onStop();
         if (mAuthListener != null) {
             FirebaseAuth.getInstance().removeAuthStateListener(mAuthListener);
+            isActivityRunning = false;
         }
     }
 }
