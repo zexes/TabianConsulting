@@ -101,7 +101,7 @@ public class NewChatroomDialog extends DialogFragment {
                                 .child(getString(R.string.field_chatroom_messages))
                                 .child(messageId)
                                 .setValue(message);
-                        ((ChatActivity)getActivity()).init();
+                        ((ChatActivity)getActivity()).getChatrooms();
                         getDialog().dismiss();
                     }else{
                         Toast.makeText(getActivity(), "insuffient security level", Toast.LENGTH_SHORT).show();
@@ -143,6 +143,8 @@ public class NewChatroomDialog extends DialogFragment {
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                //alternatively could have used:
+                //DataSnapshot singleSnapshot = dataSnapshot.getChildren().iterator().next();
                 for(DataSnapshot singleSnapshot:  dataSnapshot.getChildren()){
                     Log.d(TAG, "onDataChange: users security level: "
                             + singleSnapshot.getValue(User.class).getSecurity_level());
@@ -169,7 +171,6 @@ public class NewChatroomDialog extends DialogFragment {
         sdf.setTimeZone(TimeZone.getTimeZone("Canada/Pacific"));
         return sdf.format(new Date());
     }
-
 }
 
 

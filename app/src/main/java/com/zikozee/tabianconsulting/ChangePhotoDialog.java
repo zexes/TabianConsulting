@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,7 +16,13 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
+import androidx.core.content.FileProvider;
 import androidx.fragment.app.DialogFragment;
+
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 
 public class ChangePhotoDialog extends DialogFragment {
@@ -26,11 +33,12 @@ public class ChangePhotoDialog extends DialogFragment {
     public static final int PICKFILE_REQUEST_CODE = 8352;//random number
 
     public interface OnPhotoReceivedListener{
-        public void getImagePath(Uri imagePath);
-        public void getImageBitmap(Bitmap bitmap);
+        void getImagePath(Uri imagePath);
     }
 
     OnPhotoReceivedListener mOnPhotoReceived;
+
+    private String mCurrentPhotoPath;
 
     @Nullable
     @Override
@@ -56,7 +64,26 @@ public class ChangePhotoDialog extends DialogFragment {
             public void onClick(View v) {
                 Log.d(TAG, "onClick: starting camera");
                 Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                startActivityForResult(cameraIntent, CAMERA_REQUEST_CODE);
+//                startActivityForResult(cameraIntent, CAMERA_REQUEST_CODE);
+
+                if (cameraIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+                    // Create the File where the photo should go
+                    File photoFile = null;
+                    try {
+                        photoFile = createImageFile();
+                    } catch (IOException ex) {
+                        // Error occurred while creating the File
+                        Log.d(TAG, "onClick: error: " + ex.getMessage());
+                    }
+                    // Continue only if the File was successfully created
+                    if (photoFile != null) {
+                        Uri photoURI = FileProvider.getUriForFile(getActivity(),
+                                "com.example.android.fileprovider",
+                                photoFile);
+                        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                        startActivityForResult(cameraIntent, CAMERA_REQUEST_CODE);
+                    }
+                }
             }
         });
 
@@ -64,12 +91,28 @@ public class ChangePhotoDialog extends DialogFragment {
         return view;
     }
 
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        mCurrentPhotoPath = image.getAbsolutePath();
+        return image;
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
         /*
-        Results when selecting new image from phone memory
+            Results when selecting new image from phone memory
          */
         if(requestCode == PICKFILE_REQUEST_CODE && resultCode == Activity.RESULT_OK){
             Uri selectedImageUri = data.getData();
@@ -82,14 +125,13 @@ public class ChangePhotoDialog extends DialogFragment {
         }
 
         else if(requestCode == CAMERA_REQUEST_CODE && resultCode == Activity.RESULT_OK){
-            Log.d(TAG, "onActivityResult: done taking a photo.");
 
-            Bitmap bitmap;
-            bitmap = (Bitmap) data.getExtras().get("data");
-
-            mOnPhotoReceived.getImageBitmap(bitmap);
+            Log.d(TAG, "onActivityResult: image uri: " + mCurrentPhotoPath);
+            mOnPhotoReceived.getImagePath(Uri.fromFile(new File(mCurrentPhotoPath)));
             getDialog().dismiss();
         }
+
+
     }
 
     @Override

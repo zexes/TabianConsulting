@@ -13,7 +13,7 @@ public class FirebaseCloudMessage {
                 '}';
     }
 
-    private FirebaseCloudMessage(Builder builder) {
+    public FirebaseCloudMessage(Builder builder) {
         to = builder.to;
         data = builder.data;
     }

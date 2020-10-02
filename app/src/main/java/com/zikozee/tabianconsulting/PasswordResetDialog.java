@@ -83,6 +83,7 @@ public class PasswordResetDialog extends DialogFragment {
     private boolean isEmpty(String string){
         return string.equals("");
     }
+
 }
 
 

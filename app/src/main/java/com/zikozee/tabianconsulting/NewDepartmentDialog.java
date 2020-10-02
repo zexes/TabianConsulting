@@ -43,12 +43,7 @@ public class NewDepartmentDialog extends DialogFragment {
                     reference
                             .child(getString(R.string.dbnode_departments))
                             .child(mNewDepartment.getText().toString())
-                            .setValue(mNewDepartment.getText().toString()).addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Log.d(TAG, e.getLocalizedMessage());
-                        }
-                    });
+                            .setValue(mNewDepartment.getText().toString());
                     getDialog().dismiss();
 
                     ((AdminActivity)getActivity()).getDepartments();
@@ -67,27 +62,6 @@ public class NewDepartmentDialog extends DialogFragment {
     private boolean isEmpty(String string){
         return string.equals("");
     }
-
-//    @Override
-//    public void onResume() {
-//        super.onResume();
-//        checkAuthenticationState();
-//    }
-//
-//    private void checkAuthenticationState(){
-//        Log.d(TAG, "checkAuthenticationState: checking authentication state.");
-//
-//        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-//
-//        if(user == null){
-//            Log.d(TAG, "checkAuthenticationState: user is null, navigating back to login screen.");
-//
-//            NewDepartmentDialog departmentDialog = new NewDepartmentDialog();
-//            departmentDialog.dismiss();
-//        }else{
-//            Log.d(TAG, "checkAuthenticationState: user is authenticated.");
-//        }
-//    }
 }
 
 

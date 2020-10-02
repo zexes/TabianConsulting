@@ -26,7 +26,7 @@ import com.google.firebase.auth.FirebaseUser;
 
 public class ResendVerificationDialog extends DialogFragment {
 
-    private static final String TAG = "ResendVerificationDialog";
+    private static final String TAG = "ResendVerificationDialo";
 
     //widgets
     private EditText mConfirmPassword, mConfirmEmail;
@@ -135,8 +135,6 @@ public class ResendVerificationDialog extends DialogFragment {
     private boolean isEmpty(String string){
         return string.equals("");
     }
-
-
 }
 
 

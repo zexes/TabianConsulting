@@ -55,8 +55,8 @@ public class DeleteChatroomDialog extends DialogFragment {
                     reference.child(getString(R.string.dbnode_chatrooms))
                             .child(mChatroomId)
                             .removeValue();
+                    ((ChatActivity)getActivity()).getChatrooms();
                     getDialog().dismiss();
-                    ((ChatActivity)getActivity()).init();
                 }
             }
         });

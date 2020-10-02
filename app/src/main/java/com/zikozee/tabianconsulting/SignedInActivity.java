@@ -25,6 +25,8 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.nostra13.universalimageloader.core.ImageLoader;
+import com.zikozee.tabianconsulting.issues.IssuesActivity;
+import com.zikozee.tabianconsulting.models.Chatroom;
 import com.zikozee.tabianconsulting.models.User;
 import com.zikozee.tabianconsulting.utility.UniversalImageLoader;
 
@@ -50,9 +52,11 @@ public class SignedInActivity extends AppCompatActivity {
 
         setupFirebaseAuth();
         isAdmin();
-        initImageLoader();
         initFCM();
+        initImageLoader();
+        getPendingIntent();
     }
+
 
     private void initFCM(){
         String token = FirebaseInstanceId.getInstance().getToken();
@@ -61,6 +65,48 @@ public class SignedInActivity extends AppCompatActivity {
 
     }
 
+    private void getPendingIntent(){
+        Log.d(TAG, "getPendingIntent: checking for pending intents.");
+
+        Intent intent = getIntent();
+        if(intent.hasExtra(getString(R.string.intent_chatroom))){
+            Log.d(TAG, "getPendingIntent: pending intent detected.");
+
+            //get the chatroom
+            Chatroom chatroom = intent.getParcelableExtra(getString(R.string.intent_chatroom));
+            //navigate to the chatoom
+            Intent chatroomIntent = new Intent(SignedInActivity.this, ChatroomActivity.class);
+            chatroomIntent.putExtra(getString(R.string.intent_chatroom), chatroom);
+            startActivity(chatroomIntent);
+        }
+    }
+
+    private void isAdmin(){
+        DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
+        Query query = reference.child(getString(R.string.dbnode_users))
+                .orderByChild(getString(R.string.field_user_id))
+                .equalTo(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Log.d(TAG, "onDataChange: datasnapshot: " + snapshot);
+//                DataSnapshot singleSnapshot = snapshot.getChildren().iterator().next();
+
+                for(DataSnapshot dataSnapshot1 : snapshot.getChildren()){
+                    int securityLevel = Integer.parseInt(dataSnapshot1.getValue(User.class).getSecurity_level());
+                    if( securityLevel == 10){
+                        Log.d(TAG, "onDataChange: user is an admin.");
+                        mIsAdmin = true;
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
 
     /**
      * Persist token to third-party servers.
@@ -78,32 +124,6 @@ public class SignedInActivity extends AppCompatActivity {
                 .child(getString(R.string.field_messaging_token))
                 .setValue(token);
     }
-
-
-    private void isAdmin(){
-        DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
-        Query query = reference.child(getString(R.string.dbnode_users))
-                .orderByChild(getString(R.string.field_user_id))
-                .equalTo(FirebaseAuth.getInstance().getCurrentUser().getUid());
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Log.d(TAG, "onDataChange: datasnapshot: " + dataSnapshot);
-                DataSnapshot singleSnapshot = dataSnapshot.getChildren().iterator().next();
-                int securityLevel = Integer.parseInt(singleSnapshot.getValue(User.class).getSecurity_level());
-                if( securityLevel == 10){
-                    Log.d(TAG, "onDataChange: user is an admin.");
-                    mIsAdmin = true;
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-    }
-
 
 
 
@@ -164,7 +184,11 @@ public class SignedInActivity extends AppCompatActivity {
                 }else{
                     Toast.makeText(this, "You're not an Admin", Toast.LENGTH_SHORT).show();
                 }
+                return true;
 
+            case R.id.optionIssues:
+                intent = new Intent(SignedInActivity.this, IssuesActivity.class);
+                startActivity(intent);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -229,6 +253,5 @@ public class SignedInActivity extends AppCompatActivity {
         }
         isActivityRunning = false;
     }
-
 
 }

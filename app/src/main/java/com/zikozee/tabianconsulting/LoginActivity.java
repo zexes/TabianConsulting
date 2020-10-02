@@ -24,9 +24,12 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.zikozee.tabianconsulting.utility.UniversalImageLoader;
 
 
 public class LoginActivity extends AppCompatActivity {
+
 
     private static final String TAG = "LoginActivity";
     //constants
@@ -49,6 +52,7 @@ public class LoginActivity extends AppCompatActivity {
         mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
 
         setupFirebaseAuth();
+        initImageLoader();
         if(servicesOK()){
             init();
         }
@@ -142,6 +146,15 @@ public class LoginActivity extends AppCompatActivity {
 
         return false;
     }
+
+    /**
+     * init universal image loader
+     */
+    private void initImageLoader(){
+        UniversalImageLoader imageLoader = new UniversalImageLoader(LoginActivity.this);
+        ImageLoader.getInstance().init(imageLoader.getConfig());
+    }
+
     /**
      * Return true if the @param is null
      * @param string
@@ -186,6 +199,17 @@ public class LoginActivity extends AppCompatActivity {
 
                         Intent intent = new Intent(LoginActivity.this, SignedInActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+                        //check for extras from FCM
+                        if (getIntent().getExtras() != null) {
+                            Log.d(TAG, "initFCM: found intent extras: " + getIntent().getExtras().toString());
+                            for (String key : getIntent().getExtras().keySet()) {
+                                Object value = getIntent().getExtras().get(key);
+                                Log.d(TAG, "initFCM: Key: " + key + " Value: " + value);
+                            }
+                            String data = getIntent().getStringExtra("data");
+                            Log.d(TAG, "initFCM: data: " + data);
+                        }
                         startActivity(intent);
                         finish();
 
@@ -215,8 +239,8 @@ public class LoginActivity extends AppCompatActivity {
         super.onStop();
         if (mAuthListener != null) {
             FirebaseAuth.getInstance().removeAuthStateListener(mAuthListener);
-            isActivityRunning = false;
         }
+        isActivityRunning = false;
     }
 }
 

@@ -47,6 +47,8 @@ import retrofit2.Retrofit;
 import retrofit2.Retrofit.Builder;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+import static com.zikozee.tabianconsulting.utility.FCM.BASE_URL;
+
 
 /**
  * Created by User on 10/25/2017.
@@ -169,8 +171,7 @@ public class AdminActivity extends AppCompatActivity {
                 if(!isEmpty(message) && !isEmpty(title)){
 
                     //send message
-                    sendMessageToDepartments(title, message);
-
+                    sendMessageToDepartment(title, message);
 
                     mMessage.setText("");
                     mTitle.setText("");
@@ -185,26 +186,26 @@ public class AdminActivity extends AppCompatActivity {
         getServerKey();
     }
 
-
-    private void sendMessageToDepartments(String title, String message){
-        Log.d(TAG, "sendMessageToDepartments: sending message to selected departments");
+    private void sendMessageToDepartment(String title, String message){
+        Log.d(TAG, "sendMessageToDepartment: sending message to selected departments.");
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(FCM.BASE_URL)
+                .baseUrl(BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
+        //create the interface
         FCM fcmAPI = retrofit.create(FCM.class);
 
         //attach the headers
-        Map<String, String> headers = new HashMap<>();
-        headers.put("content-type", "application/json");
+        HashMap<String, String> headers = new HashMap<>();
+        headers.put("Content-Type", "application/json");
         headers.put("Authorization", "key=" + mServerKey);
 
-        //send the message to all tokens
-        for(String token: mTokens){
+        //send the message to all the tokens
+        for(String token : mTokens){
 
-            Log.d(TAG, "sendMessageToDepartments: sending to token: " + token);
+            Log.d(TAG, "sendMessageToDepartment: sending to token: " + token);
             Data data = new Data.Builder()
                     .message(message)
                     .title(title)
@@ -221,15 +222,14 @@ public class AdminActivity extends AppCompatActivity {
             call.enqueue(new Callback<ResponseBody>() {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                    Log.d(TAG, "onResponse: server Response: " + response.toString());
+                    Log.d(TAG, "onResponse: Server Response: "  + response.toString());
+
                 }
 
                 @Override
                 public void onFailure(Call<ResponseBody> call, Throwable t) {
-                    Log.d(TAG, "onFailure: Unable to send the message: " + t.toString());
-
-                    Toast.makeText(AdminActivity.this, "error", Toast.LENGTH_LONG).show();
-
+                    Log.e(TAG, "onFailure: Unable to send the message." + t.getMessage() );
+                    Toast.makeText(AdminActivity.this, "error", Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -257,7 +257,6 @@ public class AdminActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                Log.d(TAG, "error: " +  databaseError.toException().getMessage());
 
             }
         });
@@ -320,7 +319,7 @@ public class AdminActivity extends AppCompatActivity {
             }
         }
 
-        final ListAdapter adapter = new ArrayAdapter<>(AdminActivity.this,
+        final ListAdapter adapter = new ArrayAdapter<String>(AdminActivity.this,
                 android.R.layout.simple_list_item_1, mDepartmentsList);
         builder.setSingleChoiceItems(adapter, index, new DialogInterface.OnClickListener() {
             @Override
