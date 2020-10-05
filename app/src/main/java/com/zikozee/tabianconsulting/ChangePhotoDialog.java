@@ -4,7 +4,6 @@ package com.zikozee.tabianconsulting;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -30,7 +29,7 @@ public class ChangePhotoDialog extends DialogFragment {
     private static final String TAG = "ChangePhotoDialog";
 
     public static final int  CAMERA_REQUEST_CODE = 5467;//random number
-    public static final int PICKFILE_REQUEST_CODE = 8352;//random number
+    public static final int PICK_FILE_REQUEST_CODE = 8352;//random number
 
     public interface OnPhotoReceivedListener{
         void getImagePath(Uri imagePath);
@@ -53,7 +52,7 @@ public class ChangePhotoDialog extends DialogFragment {
                 Log.d(TAG, "onClick: accessing phones memory.");
                 Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
                 intent.setType("image/*");
-                startActivityForResult(intent, PICKFILE_REQUEST_CODE);
+                startActivityForResult(intent, PICK_FILE_REQUEST_CODE);
             }
         });
 
@@ -114,7 +113,7 @@ public class ChangePhotoDialog extends DialogFragment {
         /*
             Results when selecting new image from phone memory
          */
-        if(requestCode == PICKFILE_REQUEST_CODE && resultCode == Activity.RESULT_OK){
+        if(requestCode == PICK_FILE_REQUEST_CODE && resultCode == Activity.RESULT_OK){
             Uri selectedImageUri = data.getData();
             Log.d(TAG, "onActivityResult: image: " + selectedImageUri);
 

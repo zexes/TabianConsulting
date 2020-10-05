@@ -265,7 +265,7 @@ public class NewIssueActivity extends AppCompatActivity implements
                     @Override
                     public void onFailure(@NonNull Exception e) {
                         hideProgressBar();
-                        Snackbar.make(getCurrentFocus().getRootView(), getString(R.string.failed_to_create_new_issue), Snackbar.LENGTH_LONG).show();
+                        Snackbar.make(findViewById(android.R.id.content), getString(R.string.failed_to_create_new_issue), Snackbar.LENGTH_LONG).show();
                     }
                 });
             }
